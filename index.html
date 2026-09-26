@@ -61,11 +61,14 @@ mark{background:#fff8d9;color:inherit;border-radius:3px;padding:0 .04em}
 }
 
 
-.search-history{display:none;margin-top:8px;align-items:center;gap:6px;flex-wrap:wrap}
-.search-history.show{display:flex}
-.search-history-label{font-size:12px;color:#687386}
-.search-history button.history-chip{border:1px solid #d9dde3;background:#f1f3f5;color:#172033;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:500}
-.search-history button.history-clear{border:0;background:transparent;color:#687386;padding:5px 4px;font-size:12px;font-weight:500}
+.searchWrap{position:relative;flex:1 1 160px;min-width:0;display:flex}
+.searchWrap input[type=search]{width:100%;flex:1 1 auto}
+.search-history-dropdown{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #d9dde3;border-radius:10px;box-shadow:0 8px 24px rgba(23,32,51,.14);z-index:1000;max-height:260px;overflow:auto}
+.search-history-dropdown.show{display:block}
+.search-history-head{display:flex;align-items:center;justify-content:space-between;padding:8px 11px 6px;color:#687386;font-size:12px;border-bottom:1px solid #eef0f3}
+.search-history-head button{border:0;background:transparent;color:#687386;padding:2px 4px;font-size:12px;font-weight:500}
+.search-history-items button{display:block;width:100%;text-align:left;border:0;border-radius:0;background:#fff;color:#172033;padding:10px 12px;font-size:14px;font-weight:500;border-bottom:1px solid #f1f3f5}
+.search-history-items button:last-child{border-bottom:0}
 
 </style>
 
@@ -80,10 +83,15 @@ mark{background:#fff8d9;color:inherit;border-radius:3px;padding:0 .04em}
   <h1>PDF Read Search <small style="font-weight:500;color:#687386">P03E2</small></h1>
   <div class="row">
     <button class="pick" id="pickBtn" type="button">Choose PDF</button><input id="file" type="file" accept="application/pdf,.pdf">
-    <input id="q" type="search" placeholder="Enter a word / phrase" autocomplete="off">
+    <div class="searchWrap" id="searchWrap">
+      <input id="q" type="search" placeholder="Enter a word / phrase" autocomplete="off">
+      <div id="searchHistory" class="search-history-dropdown">
+        <div class="search-history-head"><span>Recent searches</span><button id="clearHistory" type="button">Clear</button></div>
+        <div id="historyItems" class="search-history-items"></div>
+      </div>
+    </div>
     <button id="go">Search</button>
   </div>
-  <div id="searchHistory" class="search-history"><span class="search-history-label">Recent:</span><span id="historyItems"></span><button id="clearHistory" class="history-clear" type="button">Clear</button></div>
   <div id="status">Choose a text-based PDF from Files / OneDrive to get started.</div>
 </header>
 
@@ -133,17 +141,36 @@ function saveSearchHistoryTerm(term){
 function renderSearchHistory(){
   const arr=getSearchHistory();
   historyItemsEl.innerHTML="";
-  searchHistoryEl.classList.toggle("show",arr.length>0);
+  if(!arr.length) searchHistoryEl.classList.remove("show");
   arr.forEach(term=>{
     const b=document.createElement("button");
-    b.type="button"; b.className="history-chip"; b.textContent=term;
-    b.addEventListener("click",()=>{queryEl.value=term;go.click()});
+    b.type="button"; b.textContent=term;
+    b.addEventListener("click",()=>{
+      queryEl.value=term;
+      searchHistoryEl.classList.remove("show");
+      go.click();
+    });
     historyItemsEl.appendChild(b);
   });
 }
-clearHistoryEl.addEventListener("click",()=>{
+function openSearchHistory(){
+  renderSearchHistory();
+  if(getSearchHistory().length) searchHistoryEl.classList.add("show");
+}
+clearHistoryEl.addEventListener("click",e=>{
+  e.preventDefault();
+  e.stopPropagation();
   localStorage.removeItem(HISTORY_KEY);
   renderSearchHistory();
+  searchHistoryEl.classList.remove("show");
+});
+queryEl.addEventListener("focus",openSearchHistory);
+queryEl.addEventListener("click",openSearchHistory);
+queryEl.addEventListener("input",()=>searchHistoryEl.classList.remove("show"));
+document.addEventListener("pointerdown",e=>{
+  const wrap=document.getElementById("searchWrap");
+  if(wrap && wrap.contains(e.target)) return;
+  searchHistoryEl.classList.remove("show");
 });
 renderSearchHistory();
 
