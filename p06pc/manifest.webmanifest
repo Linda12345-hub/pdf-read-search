@@ -1,0 +1,9 @@
+{
+  "name": "PDF Read Search",
+  "short_name": "PDF Search",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f1f3f5"
+}
