@@ -1,4 +1,4 @@
-const CACHE = "pdf-read-search-p05b2-v1";
+const CACHE = "pdf-read-search-p05b3-v1";
 const CORE = [
   "./",
   "./index.html",
